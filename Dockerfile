@@ -4,12 +4,13 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci || true
 COPY . .
-RUN npm run build || true
+# Kalau script build tidak ada / gagal, tetap buat folder agar COPY tidak error
+RUN npm run build || mkdir -p public/build
 
-# ===== Stage 2: runtime PHP 8.3 + extensions + composer install =====
+# ===== Stage 2: runtime PHP 8.3 + extensions + composer =====
 FROM php:8.3-cli-bookworm
 
-# Install ekstensi yang dibutuhkan Laravel + PhpSpreadsheet (gd)
+# Ekstensi yang dibutuhkan Laravel + PhpSpreadsheet (gd)
 RUN apt-get update && apt-get install -y \
     libzip-dev libicu-dev libpng-dev libjpeg-dev libfreetype6-dev \
     libonig-dev libxml2-dev libcurl4-openssl-dev zlib1g-dev git unzip \
@@ -17,7 +18,7 @@ RUN apt-get update && apt-get install -y \
  && docker-php-ext-install pdo_mysql mbstring zip intl gd exif bcmath dom \
  && rm -rf /var/lib/apt/lists/*
 
-# Composer
+# Composer CLI
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 WORKDIR /app
@@ -26,8 +27,8 @@ WORKDIR /app
 COPY composer.json composer.lock ./
 RUN composer install --no-dev --optimize-autoloader --no-interaction --no-scripts
 COPY . .
-# Copy hasil build Vite bila ada
-COPY --from=frontend /app/public/build /app/public/build 2>/dev/null || true
+# Copy hasil build (folder pasti ada berkat mkdir di stage frontend)
+COPY --from=frontend /app/public/build ./public/build
 RUN composer install --no-dev --optimize-autoloader --no-interaction
 
 # Permission minimal
