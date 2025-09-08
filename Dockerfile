@@ -2,12 +2,12 @@
 FROM composer:2 AS backend
 WORKDIR /app
 COPY composer.json composer.lock ./
-RUN composer install --no-dev --optimize-autoloader --no-interaction --no-scripts
+# abaikan cek ext-gd di stage ini
+RUN composer install --no-dev --optimize-autoloader --no-interaction --no-scripts --ignore-platform-req=ext-gd
 COPY . .
-RUN composer install --no-dev --optimize-autoloader --no-interaction
+RUN composer install --no-dev --optimize-autoloader --no-interaction --ignore-platform-req=ext-gd
 
 # ===== Stage 2: (opsional) build asset Vite =====
-# Aman walau kamu belum pakai Vite (pakai `|| true`)
 FROM node:20-alpine AS frontend
 WORKDIR /app
 COPY package.json package-lock.json ./
@@ -26,18 +26,11 @@ RUN apt-get update && apt-get install -y \
  && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
-
-# Copy app + vendor dari stage backend
 COPY --from=backend /app /app
-# Copy hasil build Vite (jika ada)
 COPY --from=frontend /app/public/build /app/public/build 2>/dev/null || true
 
-# Permission cache Laravel
-RUN mkdir -p storage bootstrap/cache \
- && chmod -R 775 storage bootstrap/cache
+RUN mkdir -p storage bootstrap/cache && chmod -R 775 storage bootstrap/cache
 
 ENV PORT=8080
 EXPOSE 8080
-
-# Jalankan Laravel via PHP built-in server
 CMD ["php","-S","0.0.0.0:8080","-t","public","public/index.php"]
