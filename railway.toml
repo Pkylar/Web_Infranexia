@@ -1,0 +1,16 @@
+# ====== SERVICE WEB (nama harus sama dengan service di Railway) ======
+# Kalau service-mu di Railway tampil sebagai "Web_Infranexia",
+# gunakan key 'web_infranexia' (huruf kecil & underscore).
+[services.web_infranexia]
+
+# Start command: pastikan symlink storage ada + fix folder views tmp + jalankan server PHP
+start = "bash -lc 'php artisan storage:link || true; mkdir -p /tmp/laravel-views; php -S 0.0.0.0:8080 -t public'"
+
+# Mount volume ke folder publiknya Laravel
+[[services.web_infranexia.mounts]]
+volume = "storage-volume"
+path   = "/app/storage/app/public"
+
+# ====== DEFINISI VOLUME ======
+[volumes.storage-volume]
+size = "1GB"  # boleh 512MB/1GB/2GB sesuai kebutuhan & plan
