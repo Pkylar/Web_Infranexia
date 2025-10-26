@@ -11,14 +11,31 @@ use App\Http\Controllers\TimApiController;
 use App\Http\Controllers\TimTeknisiController;
 use App\Http\Controllers\TeknisiController;
 use App\Http\Controllers\RekapPhotoController;
+use App\Http\Controllers\TwoFactorController; // <-- tambah ini
 
 Route::get('/', fn () => view('splash'));
 
-// Auth
+// Auth default Laravel (login, register, forgot, logout, dll)
 Auth::routes();
+
+/* ===== Two-Factor Authentication (OTP) =====
+   Diluarkan dari middleware auth, karena setelah login kita logout sementara.
+   Ditambah throttle untuk batasi percobaan OTP. */
+Route::get('/2fa/verify', [TwoFactorController::class, 'index'])
+    ->middleware(['guest', 'throttle:6,1'])
+    ->name('2fa.verify');
+
+Route::post('/2fa/verify', [TwoFactorController::class, 'verify'])
+    ->middleware(['guest', 'throttle:6,1'])
+    ->name('2fa.check');
 
 // Protected
 Route::middleware(['auth'])->group(function () {
+    // === Pengaturan 2FA di profil ===
+    Route::get('/profile/security', [TwoFactorController::class, 'settings'])->name('2fa.settings');
+    Route::post('/profile/2fa/enable', [TwoFactorController::class, 'enable'])->name('2fa.enable');
+    Route::post('/profile/2fa/disable', [TwoFactorController::class, 'disable'])->name('2fa.disable');
+    Route::post('/profile/2fa/recovery', [TwoFactorController::class, 'regenerateRecovery'])->name('2fa.recovery');
 
     /* ===================== HOME (Dashboard) ===================== */
     Route::get('/home', [HomeController::class, 'index'])->name('home');
@@ -31,12 +48,6 @@ Route::middleware(['auth'])->group(function () {
         // (opsional demo)
         Route::get('/data/create', fn () => view('data.create'))->name('data.create');
     });
-
-    /* ===================== Logout ===================== */
-    Route::post('/logout', function () {
-        Auth::logout();
-        return redirect('/');
-    })->name('logout');
 
     /* ===================== Detail Order PSB ===================== */
 
