@@ -110,8 +110,8 @@
 @section('content')
 <div class="container-fluid py-4">
   <div class="layout">
-    {{-- ===== SIDEBAR ===== --}}
-    @include('partials.sidebar')
+    <!-- {{-- ===== SIDEBAR ===== --}}
+    @include('partials.sidebar') -->
 
     {{-- ===== CONTENT ===== --}}
     <main class="content">

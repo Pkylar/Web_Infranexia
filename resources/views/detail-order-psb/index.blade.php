@@ -200,7 +200,7 @@
 <div class="container-fluid py-4">
   <div class="layout">
     
-    @include('partials.sidebar')
+    <!-- @include('partials.sidebar') -->
 
     <main class="content">
 

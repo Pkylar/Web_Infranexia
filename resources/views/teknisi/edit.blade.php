@@ -52,8 +52,8 @@
 <div class="container-fluid py-4">
   <div class="layout">
 
-    {{-- Sidebar ringkas biar konsisten --}}
-    @include('partials.sidebar')
+    <!-- {{-- Sidebar ringkas biar konsisten --}}
+    @include('partials.sidebar') -->
 
 
     <main class="content">

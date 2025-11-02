@@ -44,7 +44,7 @@
 <a href="{{ url('/home') }}" class="btn-back-fixed" aria-label="Back"><span class="chev">&lsaquo;</span></a>
 <div class="container-fluid py-4">
   <div class="layout">
-    @include('partials.sidebar')
+    <!-- @include('partials.sidebar') -->
 
     <main class="content">
       <div class="app-header mb-2">
