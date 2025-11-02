@@ -6,8 +6,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use App\Models\User;
-use PragmaRX\Google2FA\Google2FA;
-use PragmaRX\Google2FAQRCode\Google2FA as Google2FAQRCode;
 
 class TwoFactorController extends Controller
 {
@@ -34,8 +32,8 @@ class TwoFactorController extends Controller
             return redirect()->route('login')->withErrors(['email' => '2FA tidak aktif untuk akun ini.']);
         }
 
-        $google2fa = new Google2FA();
-        $valid = $google2fa->verifyKey($user->two_factor_secret, $request->one_time_password);
+        $google2fa = $this->google2fa();
+        $valid     = $google2fa->verifyKey($user->two_factor_secret, $request->one_time_password);
 
         if (!$valid) {
             return back()->withErrors(['one_time_password' => 'Kode OTP tidak valid.']);
@@ -51,27 +49,28 @@ class TwoFactorController extends Controller
 
     public function settings(Request $request)
     {
-        $user = $request->user();
+        $user    = $request->user();
         $enabled = !empty($user->two_factor_secret);
 
-        $secret = null;
-        $inlineQr = null;     // akan berisi URL gambar QR
-        $otpauth = null;      // simpan juga kalau mau tampilkan sebagai teks
+        $secret  = null;
+        $inlineQr = null;   // URL gambar QR (untuk <img src="...">)
+        $otpauth = null;    // otpauth:// URI (opsional ditampilkan sebagai teks)
 
         if (!$enabled) {
             $secret = $request->session()->get('2fa:setup:secret');
             if (!$secret) {
-                $secret = (new Google2FA())->generateSecretKey();
+                $g2fa   = $this->google2fa();
+                $secret = $g2fa->generateSecretKey();
                 $request->session()->put('2fa:setup:secret', $secret);
             }
 
             $appName = config('app.name', 'Infranexia');
-            $otpauth = (new Google2FA())->getQRCodeUrl($appName, $user->email, $secret);
+            $g2fa    = $this->google2fa();
+            $otpauth = $g2fa->getQRCodeUrl($appName, $user->email, $secret);
 
-            // Pakai layanan QR publik (pilih salah satu):
-            // api.qrserver.com
+            // Buat QR via layanan publik
             $inlineQr = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' . urlencode($otpauth);
-            // atau Google Chart API (juga oke):
+            // Alternatif:
             // $inlineQr = 'https://chart.googleapis.com/chart?chs=200x200&cht=qr&chl=' . urlencode($otpauth);
         }
 
@@ -100,8 +99,8 @@ class TwoFactorController extends Controller
             return redirect()->route('2fa.settings')->withErrors(['2fa' => 'Sesi setup 2FA tidak ditemukan.']);
         }
 
-        $google2fa = new Google2FA();
-        $valid = $google2fa->verifyKey($secret, $request->one_time_password);
+        $g2fa  = $this->google2fa();
+        $valid = $g2fa->verifyKey($secret, $request->one_time_password);
 
         if (!$valid) {
             return back()->withErrors(['one_time_password' => 'Kode OTP tidak valid.']);
@@ -155,5 +154,24 @@ class TwoFactorController extends Controller
         $user->save();
 
         return redirect()->route('2fa.settings')->with('status', 'Recovery codes telah dibuat ulang.');
+    }
+
+    private function google2fa()
+    {
+        $classV8 = '\\PragmaRX\\Google2FA\\Google2FA';                 // v8
+        $classV9 = '\\PragmaRX\\Google2FA\\Google2FA\\Google2FA';      // v9
+
+        if (class_exists($classV8)) {
+            return new $classV8();
+        }
+
+        if (class_exists($classV9)) {
+            return new $classV9();
+        }
+
+        throw new \RuntimeException(
+            'Google2FA class not found. Pastikan paket terpasang & autoload dimuat: ' .
+            'composer require pragmarx/google2fa && composer dump-autoload -o'
+        );
     }
 }
