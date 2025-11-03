@@ -238,9 +238,10 @@
 
   @php
     $orderStatusReq = request('order_status');
-    $isSub = is_string($orderStatusReq) && str_starts_with($orderStatusReq, 'KENDALA ');
-    $initialCat = $isSub ? explode('|',$orderStatusReq)[0] : ($orderStatusReq ?? '');
-    $initialSub = $isSub ? $orderStatusReq : '';
+    // fix: definisikan $isKendala agar tidak undefined
+    $isKendala = is_string($orderStatusReq) && str_starts_with($orderStatusReq, 'KENDALA ');
+    $initialCat = $isKendala ? 'KENDALA' : ($orderStatusReq ?? '');
+    $initialSub = $isKendala ? $orderStatusReq : '';
     $stoFilter  = (array)request()->input('sto', []);
   @endphp
 
@@ -335,7 +336,73 @@
       </div>
     </div>
 
-    <div id="moreFilters" class="mt-2 d-none" aria-hidden="true"></div>
+      {{-- Filter tambahan (hidden) --}}
+    <div id="moreFilters" class="mt-2 d-none" aria-hidden="true">
+      <div class="row g-2 align-items-end">
+        <div class="col-lg-3"><input type="date" name="date_from" class="form-control" value="{{ request('date_from') }}" placeholder="Date Created (from)"></div>
+        <div class="col-lg-3"><input type="date" name="date_to" class="form-control" value="{{ request('date_to') }}" placeholder="Date Created (to)"></div>
+        <div class="col-lg-3"><input type="text" name="workorder" class="form-control" value="{{ request('workorder') }}" placeholder="Workorder"></div>
+        <div class="col-lg-3"><input type="text" name="service_no" class="form-control" value="{{ request('service_no') }}" placeholder="Service No."></div>
+
+        <div class="col-lg-3"><input type="text" name="description" class="form-control" value="{{ request('description') }}" placeholder="Description"></div>
+        <div class="col-lg-3"><input type="text" name="status_bima" class="form-control" value="{{ request('status_bima') }}" placeholder="Status bima"></div>
+        <div class="col-lg-6"><input type="text" name="address" class="form-control" value="{{ request('address') }}" placeholder="Address"></div>
+
+        <div class="col-lg-3"><input type="text" name="customer_name" class="form-control" value="{{ request('customer_name') }}" placeholder="Customer Name"></div>
+        <div class="col-lg-3"><input type="text" name="contact_number" class="form-control" value="{{ request('contact_number') }}" placeholder="Contact Number"></div>
+        <div class="col-lg-3"><input type="text" name="team_name" class="form-control" value="{{ request('team_name') }}" placeholder="Team Name"></div>
+
+        {{-- Order Status (7 opsi) + Sub Kendala conditional --}}
+        <div class="col-lg-3">
+          <select id="order_status_main" class="form-select">
+            <option value="">Order Status — Semua —</option>
+            @foreach(['OPEN','SURVEI','REVOKE SC','PROGRES','KENDALA','AC','CLOSE'] as $opt)
+              <option value="{{ $opt }}" @selected(($isKendala?'KENDALA':request('order_status'))===$opt)>{{ $opt }}</option>
+            @endforeach
+          </select>
+        </div>
+        <div class="col-lg-6 {{ ($isKendala?'KENDALA':request('order_status'))==='KENDALA' ? '' : 'd-none' }}" id="sub_kendala_wrap">
+          <select id="sub_kendala" class="form-select">
+            <option value="">Sub Kendala — Semua —</option>
+            @foreach(($subKendalaOpts ?? []) as $opt)
+              <option value="{{ $opt }}" @selected($isKendala && request('order_status')===$opt)>{{ $opt }}</option>
+            @endforeach
+          </select>
+        </div>
+
+        <div class="col-lg-3"><input type="text" name="work_log" class="form-control" value="{{ request('work_log') }}" placeholder="Work Log (contains)"></div>
+        <div class="col-lg-3"><input type="text" name="koordinat_survei" class="form-control" value="{{ request('koordinat_survei') }}" placeholder="Koordinat Survei"></div>
+
+        <div class="col-lg-3">
+          <select name="validasi_eviden_kendala" class="form-select">
+            <option value="">Validasi Eviden Kendala — Semua —</option>
+            @foreach(($validasiOptions ?? []) as $v)
+              <option value="{{ $v }}" @selected(request('validasi_eviden_kendala')===$v)>{{ $v }}</option>
+            @endforeach
+          </select>
+        </div>
+        <div class="col-lg-3"><input type="text" name="nama_validator_kendala" class="form-control" value="{{ request('nama_validator_kendala') }}" placeholder="Nama Validator Kendala"></div>
+
+        <div class="col-lg-3">
+          <select name="validasi_failwa_invalid" class="form-select">
+            <option value="">Validasi Failwa / Invalid Survey — Semua —</option>
+            @foreach(($validasiOptions ?? []) as $v)
+              <option value="{{ $v }}" @selected(request('validasi_failwa_invalid')===$v)>{{ $v }}</option>
+            @endforeach
+          </select>
+        </div>
+        <div class="col-lg-3"><input type="text" name="nama_validator_failwa" class="form-control" value="{{ request('nama_validator_failwa') }}" placeholder="Nama Validator Failwa"></div>
+
+        <div class="col-lg-6"><input type="text" name="keterangan_non_valid" class="form-control" value="{{ request('keterangan_non_valid') }}" placeholder="Keterangan Non Valid"></div>
+        <div class="col-lg-3"><input type="text" name="id_valins" class="form-control" value="{{ request('id_valins') }}" placeholder="ID Valins"></div>
+
+        <div class="col-12 d-flex justify-content-end gap-2">
+          <button class="btn btn-outline-light" id="btnHideAll" type="button">Hide Filters</button>
+          <a href="{{ route('detail-order-psb.index') }}" class="btn btn-outline-light">Reset</a>
+          <button class="btn btn-light fw-semibold" type="submit">Filter</button>
+        </div>
+      </div>
+    </div>
   </form>
 
   <div id="tableWrap">
@@ -596,6 +663,7 @@
   function triggerAjax(){ fetchAndSwap(currentUrlWithQuery()); }
   $('#sc_order_no')?.addEventListener('input', triggerAjax);
   form?.addEventListener('submit', (e)=>{ e.preventDefault(); triggerAjax(); });
+
   function bindDynamicInsideWrap(){
     tableWrap.querySelectorAll('select.perpage').forEach(sel=>{
       sel.addEventListener('change', ()=>{
@@ -609,12 +677,29 @@
   }
   bindDynamicInsideWrap();
 
-  /* ===== Quick Edit modal logic ===== */
+  /* ===== Order Status (7) + Sub Kendala → hidden order_status ===== */
+  const osMain = $('#order_status_main');
+  const osFinal= $('#order_status_final');
+  const subWrap= $('#sub_kendala_wrap');
+  const subSel = $('#sub_kendala');
+
+  function syncOrderStatus(){
+    if(!osMain || !osFinal) return;
+    const isKen = osMain.value === 'KENDALA';
+    subWrap?.classList.toggle('d-none', !isKen);
+    osFinal.value = isKen ? (subSel?.value || '') : (osMain.value || '');
+  }
+  osMain?.addEventListener('change', ()=>{ syncOrderStatus(); triggerAjax(); });
+  subSel ?.addEventListener('change', ()=>{ syncOrderStatus(); triggerAjax(); });
+
+  // init: pastikan hidden terisi benar saat load
+  syncOrderStatus();
+
+  /* ===== Quick Edit modal logic (tetap) ===== */
   const SUBS_RAW = SUBS.slice();
   const KEN = KEN_CATS;
 
   const csrf = @json(csrf_token());
-  // base URL quick-update pakai placeholder __ID__ → diganti saat submit
   const updateUrlBase = @json(route('detail-order-psb.quick-update', ['order' => '__ID__']));
 
   function refs(){
@@ -662,7 +747,7 @@
     const id   = row.dataset.id;
     const sto  = row.dataset.sto || '';
     const team = row.dataset.team || '';
-    const stat = row.dataset.status || ''; // bisa "OPEN" / "KENDALA TEKNIK|ODP FULL"
+    const stat = row.dataset.status || '';
     const desc = row.dataset.desc || '';
 
     qe.err.classList.add('d-none'); qe.err.textContent = '';
@@ -674,7 +759,7 @@
     if (stat.startsWith('KENDALA ')) {
       const cat = KEN.find(c => stat.startsWith(c)) || '';
       qe.status.value = cat || '';
-      showSub(qe.status.value, stat); // stat = full sub label
+      showSub(qe.status.value, stat);
     } else {
       qe.status.value = stat || '';
       hideSub();
@@ -720,7 +805,6 @@
           return;
         }
 
-        // Update kolom di tabel
         const tr = document.getElementById('row-'+id);
         if(tr){
           tr.querySelector('.td-team')?.replaceChildren(document.createTextNode(data.row.team_name || ''));
@@ -748,7 +832,12 @@
   /* ===== Show/Hide extra filter ===== */
   const more   = document.getElementById('moreFilters');
   const topCtl = document.getElementById('topControls');
-  document.getElementById('btnShowAll')?.addEventListener('click', ()=>{ more.classList.remove('d-none'); more.setAttribute('aria-hidden','false'); topCtl.classList.add('d-none'); });
+  document.getElementById('btnShowAll')?.addEventListener('click', ()=>{
+    more.classList.remove('d-none'); more.setAttribute('aria-hidden','false'); topCtl.classList.add('d-none');
+  });
+  document.getElementById('btnHideAll')?.addEventListener('click', ()=>{
+    more.classList.add('d-none'); more.setAttribute('aria-hidden','true'); topCtl.classList.remove('d-none');
+  });
 
 })();
 </script>
