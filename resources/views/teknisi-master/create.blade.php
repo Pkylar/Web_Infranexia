@@ -108,10 +108,10 @@
               <option value="NONAKTIF" @selected(old('status')==='NONAKTIF')>NONAKTIF</option>
             </select>
           </div>
-          <div class="col-md-4">
+          <!-- <div class="col-md-4">
             <label class="form-label">Foto (jpg/png/webp, max 2MB)</label>
             <input type="file" name="foto" accept=".jpg,.jpeg,.png,.webp" class="form-control">
-          </div>
+          </div> -->
         </div>
 
         <div class="mt-3 d-flex gap-2">

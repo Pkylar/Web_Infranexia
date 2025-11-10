@@ -10,7 +10,7 @@ return new class extends Migration {
         Schema::create('presensis', function (Blueprint $t) {
             $t->id();
             $t->string('nik');                 // teknisis.nik
-            $t->foreignId('tim_id')->constrained('tim_teknisis')->cascadeOnUpdate();
+            $t->foreignId('tim_id')->constrained('tim_teknisi')->cascadeOnUpdate();
             $t->string('sto_now', 10);         // STO tempat checkin
             $t->timestamp('checked_in_at')->useCurrent();
             $t->timestamp('checked_out_at')->nullable();

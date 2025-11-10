@@ -110,7 +110,7 @@
           <table class="table table-bordered align-middle mb-0">
             <thead class="table-light">
               <tr>
-                <th style="width:48px"></th>
+                <!-- <th style="width:48px"></th> -->
                 <th style="width:140px">NIK</th>
                 <th>Nama</th>
                 <th>Mitra</th>
@@ -122,13 +122,13 @@
             <tbody>
               @forelse($rows as $r)
                 <tr>
-                  <td class="text-center">
+                  <!-- <td class="text-center">
                     @if(!empty($r->foto_path))
                       <img class="foto-thumb" src="{{ Storage::url($r->foto_path) }}" alt="foto">
                     @else
                       <span class="badge bg-secondary">No Foto</span>
                     @endif
-                  </td>
+                  </td> -->
                   <td class="fw-semibold">{{ $r->nik }}</td>
                   <td>{{ $r->nama }}</td>
                   <td>{{ $r->mitra }}</td>

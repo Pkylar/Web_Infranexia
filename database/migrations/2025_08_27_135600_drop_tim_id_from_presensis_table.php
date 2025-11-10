@@ -12,18 +12,23 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('presensis', function (Blueprint $table) {
-        $table->dropColumn('tim_id');
-        });
+            // Hapus foreign key constraint-nya
+            $table->dropForeign(['tim_id']);
 
+            // hapus kolomnya
+            $table->dropColumn('tim_id');
+        });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::table('presensis', function (Blueprint $table) {
-            //
+            // Tambahkan kembali kolom dan constraint kalau rollback
+            $table->foreignId('tim_id')
+                ->constrained('tim_teknisi')
+                ->cascadeOnUpdate()
+                ->cascadeOnDelete();
         });
     }
+
 };
