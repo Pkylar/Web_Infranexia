@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <style>
     .login-bg {
         position: relative;
@@ -11,40 +12,31 @@
         padding: 30px;
         overflow: hidden;
     }
-
     .login-bg::before {
         content: "";
         background: url('{{ asset('images/bg.jpg') }}') center center / cover no-repeat;
-        position: absolute;
-        top: 0; left: 0; right: 0; bottom: 0;
-        opacity: 0.75; /* 75% background opacity */
+        position: absolute; inset: 0;
+        opacity: 0.75;
         z-index: 0;
     }
-
     .login-card {
         background: rgba(255, 255, 255, 0.95);
         padding: 40px 30px;
         border-radius: 16px;
         box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-        max-width: 400px;
-        width: 100%;
-        text-align: center;
-        position: relative;
-        z-index: 1;
+        max-width: 400px; width: 100%;
+        text-align: center; position: relative; z-index: 1;
     }
-
     .login-logo {
         max-width: 220px;
         margin: 0 auto 20px auto;
     }
-
     .form-group {
         margin-bottom: 20px;
         max-width: 340px;
         margin-left: auto;
         margin-right: auto;
     }
-
     .form-label {
         display: block;
         font-weight: 600;
@@ -52,11 +44,9 @@
         margin-bottom: 6px;
         text-align: left;
     }
-
     .form-icon-wrapper {
         position: relative;
     }
-
     .form-icon {
         position: absolute;
         left: 15px;
@@ -65,7 +55,6 @@
         color: #999;
         font-size: 14px;
     }
-
     .form-control {
         border-radius: 10px;
         padding-left: 40px;
@@ -76,7 +65,6 @@
         width: 100%;
         box-sizing: border-box;
     }
-
     .btn-login {
         background-color: #002456;
         color: white;
@@ -91,29 +79,10 @@
         box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
         transition: background-color 0.3s;
     }
-
-    .btn-login:hover {
-        background-color: #001c3a;
-    }
-
-    .register-link {
-        margin-top: 15px;
-    }
-
-    .register-link a {
-        color: #002456;
-        font-weight: 600;
-    }
-
-    .text-danger {
-        color: #e3342f;
-        font-size: 13px;
-        margin-top: 4px;
-        text-align: left;
-        max-width: 340px;
-        margin-left: auto;
-        margin-right: auto;
-    }
+    .btn-login:hover { background-color: #001c3a; }
+    .register-link { margin-top: 15px; }
+    .register-link a { color: #002456; font-weight: 600; }
+    .text-danger { color: #e3342f; font-size: 13px; margin-top: 4px; text-align: left; max-width: 340px; margin-left: auto; margin-right: auto; }
 </style>
 
 <div class="login-bg">
